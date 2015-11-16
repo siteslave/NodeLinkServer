@@ -1,0 +1,36 @@
+
+{
+  "hospcode": "",
+  "hn": "",
+  "info": {
+    "cid": "",
+    "fname": "",
+    "lname": "",
+    "birth": ""
+  },
+  "accident": [
+    {
+      "ae_type": "",
+      "ae_date": "",
+      ...
+    },
+    {
+      "ae_type": "",
+      "ae_date": "",
+      ...
+    }
+  ]
+}
+
+/* person */
+{
+  "hn": "",
+  "cid": "",
+  "hospcode": ""
+}
+
+/* accident */
+{
+  "hn": "",
+  "hospcode": ""
+}
