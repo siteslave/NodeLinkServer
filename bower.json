@@ -1,0 +1,27 @@
+{
+  "name": "NodeLinkServer",
+  "description": "",
+  "main": "",
+  "authors": [
+    "Satit Rianpit <siteslave@msn.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/siteslave/NodeLinkServer",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.5",
+    "angular": "~1.4.7",
+    "angular-ui-router": "~0.2.15",
+    "ngprogress": "~1.1.2",
+    "font-awesome": "~4.4.0"
+  }
+}

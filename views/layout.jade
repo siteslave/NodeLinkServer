@@ -1,7 +1,30 @@
 doctype html
-html
+html(ng-app="app")
   head
+    meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+      
     title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/vendor/bootstrap/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/vendor/font-awesome/css/font-awesome.min.css')
+    link(rel='stylesheet', href='/vendor/ngprogress/ngProgress.css')
+      
+    script(src="/vendor/angular/angular.js") 
+    script(src="/vendor/ngprogress/build/ngprogress.min.js") 
+    
+    script(src="/javascripts/app.js")
   body
-    block content
+    nav.navbar.navbar-default.navbar-static-top
+      .container 
+        .navbar-header
+          button(type="button", data-toggle="collapse", data-target="#navbar", aria-expanded="false", aria-controls="navbar").navbar-toggle.collapsed
+            span.sr-only Toggle navigation
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          a.navbar-brand(href="#/") 
+            i.fa.fa-share-alt
+            | &nbsp; NodeLink
+        
+    .container(ng-controller="MainCtrl")
+      block content

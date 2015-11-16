@@ -5,17 +5,22 @@ var moment = require('moment');
 module.exports = {
   doImport: function(db, data) {
     var q = Q.defer();
-    var col = db.collection('refer');
+    var col = db.collection('accident');
+    col.createIndex({hospcode: 1});
+    col.createIndex({hn: 1});
+    col.createIndex({vn: 1});
 
     var query = col.initializeUnorderedBulkOp({
       useLegacyOps: true
     });
     var total = 0;
     _.forEach(data, function(v) {
-      if (v.vn && v.hospcode) {
+      if (v.vn && v.hospcode && v.hn) {
         total++;
-        v.date_serv = new Date(moment(v.date_serv, "yyyymmdd").format());
-        v.d_update = new Date(moment(v.d_update, "yyyymmddhhmmss").format());
+        v.vstdate = moment(v.vstdate).format('x');
+        v.arrive_time = moment(v.arrive_time).format('x');
+        v.birth = moment(v.birth).format('x');
+
         query.find({
             hospcode: v.hospcode,
             hn: v.hn,

@@ -1,17 +1,85 @@
 var express = require('express');
 var router = express.Router();
+var moment = require('moment');
+var _ = require('lodash');
+var MongoClient = require('mongodb').MongoClient;
 
 var importor = require('../models/imports');
+var auth = require('../models/auth');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+
+  var url = req.dbUrl;
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) {
+      console.log(err);
+      res.send({ok: false, msg: err});
+    } else {
+      db.collection('accident').createIndex({hospcode:1});
+      db.collection('hospitals').createIndex({hospcode:1});
+
+      db.collection('accident').distinct('hospcode', function (err, hospitals) {
+        var cursor = db.collection('hospitals').find({'hospcode': {$in: hospitals}});
+
+        cursor.toArray(function (err, items) {
+          if (err) res.send({ok: false, msg: err});
+          else {
+            res.render('index', { title: 'NodeLink Server', hospitals: items });
+          }
+        });
+      });
+    }
+
+  });
+
+
+});
+
+router.get('/test', function (req, res, next) {
+  var url = req.dbUrl;
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) {
+      console.log(err);
+      res.send({ok: false, msg: err});
+    } else {
+      db.collection('accident').ensureIndex({hospcode:1});
+      db.collection('accident').distinct('hospcode', function (err, hospitals) {
+        var cursor = db.collection('hospitals').find({'hospcode': {$in: hospitals}});
+
+        cursor.toArray(function (err, items) {
+          if (err) res.send({ok: false, msg: err});
+          else res.send({ok: true, rows: items});
+        });
+      });
+    }
+  });
+});
+
+router.get('/auth', function (req, res, next) {
+  var url = req.dbUrl;
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) {
+      console.log(err);
+      res.send({ok: false, msg: err});
+    } else {
+      db.collection('auth').createIndex({username: 1});
+      db.collection('auth').createIndex({password: 1});
+      var cursor = db.collection('auth').find({username: '04968', password: 'e10adc3949ba59abbe56e057f20f883e'});
+      cursor.toArray(function (err, items) {
+        if (err) res.send({ok: false, msg: err});
+        else res.send({ok: true, rows: items});
+      })
+    }
+  });
 });
 
 router.post('/save', function (req, res, next) {
   var url = req.dbUrl;
 
-  var MongoClient = require('mongodb').MongoClient;
   var data = req.body.data;
 
   MongoClient.connect(url, function(err, db) {
@@ -32,11 +100,30 @@ router.post('/save', function (req, res, next) {
   });
 });
 
-router.get('/all', function (req, res, next) {
-  var url = req.dbUrl;
+// router.get('/all', function (req, res, next) {
+//   var url = req.dbUrl;
+//   var data = req.body.data;
+//
+//   MongoClient.connect(url, function(err, db) {
+//     if (err) {
+//       console.log(err);
+//       res.send({ok: false, msg: err});
+//     }
+//     else {
+//       var cursor = db.collection('refer').find();
+//       cursor.toArray(function (err, items) {
+//         if (err) res.send({ok: false, msg: err});
+//         else res.send({ok: true, rows: items});
+//       })
+//     }
+//   });
+// });
 
-  var MongoClient = require('mongodb').MongoClient;
-  var data = req.body.data;
+router.post('/send_history', function (req, res, next) {
+  var url = req.dbUrl;
+  var date = req.body.date;
+  var username = req.body.user;
+  var password = req.body.password
 
   MongoClient.connect(url, function(err, db) {
     if (err) {
@@ -44,13 +131,75 @@ router.get('/all', function (req, res, next) {
       res.send({ok: false, msg: err});
     }
     else {
-      var cursor = db.collection('refer').find();
-      cursor.toArray(function (err, items) {
-        if (err) res.send({ok: false, msg: err});
-        else res.send({ok: true, rows: items});
+      // Check auth
+      auth.auth(db, username, password)
+      .then(function (pass) {
+        if (pass) {
+          // Create timestamp
+          var strDate = moment(moment(date, 'YYYY-MM-DD').format('YYYY-MM-DD')).format('x');
+          db.collection('accident').createIndex({vstdate: 1});
+          var cursor = db.collection('accident').find({vstdate: strDate});
+          cursor.toArray(function (err, items) {
+            if (err) res.send({ok: false, msg: err});
+            else {
+              var data = [];
+              _.forEach(items, function (v) {
+                var obj = {};
+                obj.hospcode = v.hospcode;
+                obj.vn = v.vn;
+
+                data.push(obj);
+              });
+              res.send({ok: true, rows: data});
+            }
+          })
+        } else {
+          res.send({ok: false, msg: 'Access denied!'})
+        }
       })
+
     }
   });
-})
+});
+
+router.post('/list', function (req, res, next) {
+  var url = req.dbUrl;
+  var hospcode = req.body.hospcode;
+
+  if (hospcode) {
+    MongoClient.connect(url, function(err, db) {
+      if (err) {
+        console.log(err);
+        res.send({ok: false, msg: err});
+      }
+      else {
+        db.collection('accident').createIndex({hospcode: 1});
+        var cursor = db.collection('accident').find({hospcode: hospcode});
+        cursor.toArray(function (err, items) {
+          if (err) res.send({ok: false, msg: err});
+          else {
+            var data = [];
+            _.forEach(items, function (v) {
+              var obj = {};
+              obj.hospcode = v.hospcode;
+              obj.vn = v.vn;
+              obj.hn = v.hn;
+              obj.vstdate = moment(v.vstdate, 'x').format('DD/MM/YYYY');
+              obj.fullname = v.fullname;
+              obj.trauma = v.trauma;
+              obj.sex = v.sex == '1' ? 'ชาย' : 'หญิง';
+              obj.birth = moment(v.birth, 'x').format('DD/MM/YYYY');
+
+              data.push(obj);
+            });
+            res.send({ok: true, rows: data});
+          }
+        })
+      }
+    });
+  } else {
+    res.send({ok: false, msg: 'ไม่พบหน่วยบริการ'})
+  }
+});
 
 module.exports = router;

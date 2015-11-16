@@ -1,5 +1,35 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  .well.well-sm
+    form.form-inline
+      label เลือกหน่วยบริการ &nbsp;
+      select.form-control(style="width: 400px;", ng-model="hospcode")
+        for h in hospitals
+          option(value="") เลือกหน่วยบริการ
+          option(value="#{h.hospcode}") #{h.name}
+      //- select.form-control(style="width: 400px;", ng-model="hospcode" ng-options="hospital.hospcode as hospital.name for hospital in hospitals")
+      | &nbsp;
+      button.btn.btn-primary(ng-click="show()")
+        i.fa.fa-search
+        | &nbsp; แสดงข้อมูล
+        
+  table.table.table-striped
+    thead
+      tr
+        th #
+        th วันที่
+        th HN
+        th ชื่อ-สกุล
+        th เพศ
+        th วันเกิด
+        th TRAUMA
+    tbody
+      tr(ng-repeat="p in person") 
+        td {{ $index+1 }}
+        td {{ p.vstdate }}
+        td {{ p.hn }}
+        td {{ p.fullname }}
+        td {{ p.sex }}
+        td {{ p.birth }}
+        td {{ p.trauma }}
