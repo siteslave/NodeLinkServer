@@ -15,14 +15,14 @@ module.exports = {
     });
     var total = 0;
     _.forEach(data, function(v) {
-      if (v.vn && v.hospcode && v.hn) {
+      if (v.vn && v.hcode && v.hn) {
         total++;
-        v.vstdate = moment(v.vstdate).format('x');
-        v.arrive_time = moment(v.arrive_time).format('x');
-        v.birth = moment(v.birth).format('x');
+        // v.vstdate = moment(v.vstdate).format('x');
+        // v.arrive_time = moment(v.arrive_time).format('x');
+        // v.birth = moment(v.birth).format('x');
 
         query.find({
-            hospcode: v.hospcode,
+            hcode: v.hcode,
             hn: v.hn,
             vn: v.vn
           })
